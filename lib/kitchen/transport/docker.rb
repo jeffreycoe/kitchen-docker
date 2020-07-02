@@ -82,6 +82,10 @@ module Kitchen
         # Include the InSpec patches to be able to execute tests on Windows containers
         include Kitchen::Docker::Helpers::InspecHelper
 
+        def download(remotes, local)
+          container.download(remotes, local)
+        end
+
         def execute(command)
           return if command.nil?
 

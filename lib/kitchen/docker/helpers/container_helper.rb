@@ -83,6 +83,18 @@ module Kitchen
           raise "Failed to create directory #{path} on container. #{e}"
         end
 
+        def copy_file_from_container(state, remote_file, local_file)
+          debug("Copying remote file #{remote_file} from container to #{local_file}")
+
+          remote_file = replace_env_variables(state, remote_file)
+
+          remote_file = "#{state[:container_id]}:#{remote_file}"
+          cmd = build_copy_command(remote_file, local_file)
+          docker_command(cmd)
+        rescue => e
+          raise "Failed to copy file #{local_file} from container. #{e}"
+        end
+
         def copy_file_to_container(state, local_file, remote_file)
           debug("Copying local file #{local_file} to #{remote_file} on container")
 

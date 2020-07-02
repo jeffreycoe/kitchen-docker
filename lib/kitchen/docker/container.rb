@@ -48,6 +48,17 @@ module Kitchen
         end
       end
 
+      def download(remotes, local)
+        files = remotes
+        files = Array(remotes) unless remotes.is_a?(Array)
+
+        files.each do |file|
+          copy_file_from_container(@config, file, local)
+        end
+
+        files
+      end
+
       def hostname(state)
         hostname = 'localhost'
 
