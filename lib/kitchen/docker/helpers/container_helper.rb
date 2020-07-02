@@ -13,6 +13,7 @@
 
 require 'erb'
 require 'json'
+require 'pathname'
 require 'shellwords'
 require 'tempfile'
 require 'uri'
@@ -87,6 +88,7 @@ module Kitchen
           debug("Copying remote file #{remote_file} from container to #{local_file}")
 
           remote_file = replace_env_variables(state, remote_file)
+          remote_file = expand_remote_path(state, remote_file)
 
           remote_file = "#{state[:container_id]}:#{remote_file}"
           cmd = build_copy_command(remote_file, local_file)
@@ -99,6 +101,7 @@ module Kitchen
           debug("Copying local file #{local_file} to #{remote_file} on container")
 
           remote_file = replace_env_variables(state, remote_file)
+          remote_file = expand_remote_path(state, remote_file)
 
           remote_file = "#{state[:container_id]}:#{remote_file}"
           cmd = build_copy_command(local_file, remote_file)
@@ -157,6 +160,19 @@ module Kitchen
           container_id = state[:container_id]
           docker_command("stop -t 0 #{container_id}")
           docker_command("rm #{container_id}")
+        end
+
+        def expand_remote_path(state, relative_path)
+          return unless Pathname.new(relative_path).relative?
+
+          cmd = "realpath #{relative_path}"
+
+          if state[:platform].include?('windows')
+            cmd = "-Command (Resolve-Path -Path #{relative_path}).Path"
+            cmd = build_powershell_command(cmd)
+          end
+
+          container_exec(state, cmd).strip
         end
 
         def dockerfile_proxy_config
